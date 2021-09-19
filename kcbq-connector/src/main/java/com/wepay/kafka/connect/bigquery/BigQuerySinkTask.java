@@ -187,7 +187,7 @@ public class BigQuerySinkTask extends SinkTask {
   @Override
   public void put(Collection<SinkRecord> records) {
     // Periodically poll for errors here instead of doing a stop-the-world check in flush()
-    executor.maybeThrowEncounteredErrors();
+    executor.maybeThrowEncounteredError();
 
     logger.debug("Putting {} records in the sink.", records.size());
 
@@ -326,14 +326,7 @@ public class BigQuerySinkTask extends SinkTask {
     logger.trace("task.start()");
     final boolean hasGCSBQTask =
         properties.remove(BigQuerySinkConnector.GCS_BQ_TASK_CONFIG_KEY) != null;
-    try {
-      config = new BigQuerySinkTaskConfig(properties);
-    } catch (ConfigException err) {
-      throw new SinkConfigConnectException(
-          "Couldn't start BigQuerySinkTask due to configuration error",
-          err
-      );
-    }
+    config = new BigQuerySinkTaskConfig(properties);
 
     bigQueryWriter = getBigQueryWriter();
     gcsToBQWriter = getGcsWriter();
