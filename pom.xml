@@ -47,17 +47,23 @@
         <junit.version>4.13</junit.version>
         <mockito.version>3.2.4</mockito.version>
 
+        <assembly.plugin.version>3.3.0</assembly.plugin.version>
         <buildnumber.plugin.version>1.4</buildnumber.plugin.version>
         <checkstyle.plugin.version>2.15</checkstyle.plugin.version>
         <checkstyle.version>6.18</checkstyle.version>
         <compiler.plugin.version>3.8.1</compiler.plugin.version>
         <jacoco.plugin.version>0.8.5</jacoco.plugin.version>
+        <javadoc.plugin.version>2.9.1</javadoc.plugin.version>
         <kafka.connect.plugin.version>0.11.1</kafka.connect.plugin.version>
         <release.plugin.version>2.5.3</release.plugin.version>
+        <signing.plugin.version>1.5</signing.plugin.version>
         <site.plugin.version>3.7.1</site.plugin.version>
+        <source.plugin.version>2.2.1</source.plugin.version>
         <surefire.plugin.version>3.0.0-M4</surefire.plugin.version>
 
         <main.dir>${project.basedir}</main.dir>
+        <!-- Skip GPG signing by default so that people can build locally without configuring a keyring, entering a passphrase, etc. -->
+        <skip.gpg.signing>true</skip.gpg.signing>
         <skip.unit.tests>${maven.test.skip}</skip.unit.tests>
     </properties>
 
@@ -106,6 +112,10 @@
             <id>jcenter</id>
             <url>https://jcenter.bintray.com</url>
         </repository>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
     </repositories>
 
     <pluginRepositories>
@@ -117,7 +127,22 @@
             <id>jcenter</id>
             <url>https://jcenter.bintray.com</url>
         </pluginRepository>
+        <pluginRepository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </pluginRepository>
     </pluginRepositories>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
 
     <dependencyManagement>
         <dependencies>
@@ -166,6 +191,12 @@
                 <groupId>io.debezium</groupId>
                 <artifactId>debezium-core</artifactId>
                 <version>${debezium.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.apache.kafka</groupId>
+                        <artifactId>connect-transforms</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
             <!--
@@ -313,6 +344,52 @@ under the License.
                     </excludes>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>${source.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${javadoc.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>${signing.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                        <configuration>
+                            <gpgArguments>
+                                <arg>--pinentry-mode</arg>
+                                <arg>loopback</arg>
+                            </gpgArguments>
+                            <skip>${skip.gpg.signing}</skip>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
         <pluginManagement>
             <plugins>
@@ -409,10 +486,21 @@ under the License.
                     <artifactId>kafka-connect-maven-plugin</artifactId>
                     <version>${kafka.connect.plugin.version}</version>
                 </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-assembly-plugin</artifactId>
+                    <version>${assembly.plugin.version}</version>
+                </plugin>
             </plugins>
         </pluginManagement>
     </build>
     <profiles>
+        <profile>
+            <id>release</id>
+            <properties>
+                <skip.gpg.signing>false</skip.gpg.signing>
+            </properties>
+        </profile>
         <profile>
             <id>jenkins</id>
             <build>
@@ -452,6 +540,14 @@ under the License.
                                     <KCBQ_TEST_TABLE_SUFFIX>-${scmBranch}-${buildNumber}-${timestamp}</KCBQ_TEST_TABLE_SUFFIX>
                                     <KCBQ_TEST_FOLDER>${scmBranch}-${buildNumber}-${timestamp}</KCBQ_TEST_FOLDER>
                                 </environmentVariables>
+                            </configuration>
+                        </plugin>
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-gpg-plugin</artifactId>
+                            <configuration>
+                                <keyname>${env.GPG_KEY}</keyname>
+                                <passphrase>${env.GPG_PASSPHRASE}</passphrase>
                             </configuration>
                         </plugin>
                     </plugins>

@@ -34,6 +34,8 @@
 
     <properties>
         <main.dir>${project.parent.basedir}</main.dir>
+        <!-- Skip assembling the fat tar by default to reduce build time bloat -->
+        <skip.distribution.tar>true</skip.distribution.tar>
     </properties>
 
     <dependencies>
@@ -211,6 +213,42 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>tar-for-distribution</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <descriptors>
+                                <descriptor>src/assembly/release-tar.xml</descriptor>
+                            </descriptors>
+                            <appendAssemblyId>false</appendAssemblyId>
+                            <skipAssembly>${skip.distribution.tar}</skipAssembly>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>release</id>
+            <properties>
+                <skip.distribution.tar>false</skip.distribution.tar>
+            </properties>
+        </profile>
+        <profile>
+            <id>jenkins</id>
+            <properties>
+                <!-- We want to make sure in CI builds that the fat tar can be assembled -->
+                <skip.distribution.tar>false</skip.distribution.tar>
+            </properties>
+        </profile>
+    </profiles>
 </project>
