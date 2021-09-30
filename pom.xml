@@ -476,10 +476,6 @@ under the License.
         </profile>
         <profile>
             <id>jenkins</id>
-            <properties>
-                <!-- We want to make sure in CI builds that artifacts can be signed -->
-                <skip.gpg.signing>false</skip.gpg.signing>
-            </properties>
             <build>
                 <pluginManagement>
                     <plugins>
