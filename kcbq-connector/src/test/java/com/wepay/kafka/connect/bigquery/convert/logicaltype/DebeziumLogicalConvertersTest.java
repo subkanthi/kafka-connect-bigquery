@@ -35,8 +35,6 @@ import org.apache.kafka.connect.data.Schema;
 
 import org.junit.Test;
 
-import java.time.LocalTime;
-
 public class DebeziumLogicalConvertersTest {
 
   //corresponds to March 1 2017, 22:20:38.808(123) UTC
