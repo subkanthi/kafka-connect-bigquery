@@ -40,6 +40,7 @@ public class DebeziumLogicalConvertersTest {
   //corresponds to March 1 2017, 22:20:38.808(123) UTC
   //              (March 1 2017, 14:20:38.808(123)-8:00)
   private static final Integer DAYS_TIMESTAMP = 17226;
+  private static final Integer MILLI_TIMESTAMP_INT = 1488406838;
   private static final Long MILLI_TIMESTAMP = 1488406838808L;
   private static final Long MICRO_TIMESTAMP = 1488406838808123L;
 
@@ -107,9 +108,8 @@ public class DebeziumLogicalConvertersTest {
     assertEquals("22:20:38.808", formattedTime);
 
     // Cover test when the Debezium.time.Time field is integer.
-    Integer milliseconds = MILLI_TIMESTAMP.intValue();
-    String sqlServerFormattedTime = converter.convert(milliseconds);
-    System.out.println(sqlServerFormattedTime);
+    String formattedTimeFromInteger = converter.convert(MILLI_TIMESTAMP_INT);
+    assertEquals("05:26:46.838", formattedTimeFromInteger);
   }
 
   @Test
